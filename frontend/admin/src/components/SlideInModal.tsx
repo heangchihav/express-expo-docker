@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, StyleSheet, Dimensions, ImageBackground, TouchableWithoutFeedback, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { BlurView } from 'expo-blur';
 import AvatarModal from './AvatarModal';
@@ -8,10 +8,10 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/navigation';
 import { MenuItem, SlideInModalProps } from '../types/types';
-import { ThemeContext } from '@/contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const SlideInModal: React.FC<SlideInModalProps> = ({ visible, closeModal }) => {
-  const { theme } = useContext(ThemeContext);
+  const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const [showModal, setShowModal] = useState(visible);
   const [activeMenuItem, setActiveMenuItem] = useState<string | null>(null);

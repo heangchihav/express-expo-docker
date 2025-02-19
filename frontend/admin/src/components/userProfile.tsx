@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     ScrollView,
@@ -10,20 +10,19 @@ import {
     Modal,
 } from 'react-native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { UserProfileProps } from '../types/types';
 import { BlurView } from 'expo-blur';
-import { ThemeContext } from '../contexts/ThemeContext';
 import { Colors } from '../constants/Colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import ThemeSwitcher from './ThemeSwitcherButton';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 
 const UserProfile: React.FC<UserProfileProps> = ({ user, onPress, visible }) => {
-    const { theme } = useContext(ThemeContext);
+    const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
 
     const [form, setForm] = useState({

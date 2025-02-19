@@ -1,9 +1,8 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { View, Modal, Text, StyleSheet, TouchableOpacity, TextInput, Dimensions } from 'react-native';
 import { Colors } from '../constants/Colors';
 import { FontAwesome, AntDesign } from '@expo/vector-icons';
-import { ThemeContext } from '../contexts/ThemeContext';
-
+import { useTheme } from '@/contexts/ThemeContext';
 interface LoginModalProps {
     visible: boolean;
     onClose: () => void;
@@ -11,7 +10,7 @@ interface LoginModalProps {
 
 const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
 
-    const { theme } = useContext(ThemeContext);
+    const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
 
     return (
@@ -40,7 +39,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose }) => {
                         <TextInput
                             placeholder="Password"
                             secureTextEntry
-                            style={[styles.input, { backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background, color: isDarkMode ? Colors.lightText : Colors.lightText  }]}
+                            style={[styles.input, { backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background, color: isDarkMode ? Colors.lightText : Colors.lightText }]}
                         />
                         <TouchableOpacity style={styles.rememberMeButton}>
                             <Text style={[styles.rememberMeText, { color: isDarkMode ? Colors.dark.text : Colors.light.text }]}>Remember me</Text>

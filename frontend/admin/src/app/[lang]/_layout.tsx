@@ -1,30 +1,32 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider, useNavigation } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { View } from 'react-native';
-import Navbar from '@/src/components/Navbar';
-import { ThemeContext } from '@/src/contexts/ThemeContext';
-import { Language, useLanguage } from '../../contexts/LanguageContext';
-import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import ContactPage from '../../screens/menus/contact';
-import PromotionPage from '../../screens/menus/promotion';
-import SmallScreenNav from '@/src/components/SmallScreenNav';
-import ModalComponent from '@/src/components/Modal';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SplashScreen, usePathname } from 'expo-router';
-import { useIsLargeScreen } from '@/src/hooks/useIsLargeScreen';
-import TabsNavigator from '@/src/navigation/TabsNavigator';
-import HomePage from '@/src/screens/menus';
-import { StackNavigator } from '@/src/navigation/StackNavigator';
+import { createStackNavigator } from '@react-navigation/stack';
+
+import Navbar from '@/components/Navbar';
+import { useTheme, VALID_THEMES } from '@/contexts/ThemeContext';
+import { Language, useLanguage, VALID_LANGUAGES } from '@/contexts/LanguageContext';
+import ContactPage from '@/screens/menus/contact';
+import PromotionPage from '@/screens/menus/promotion';
+import SmallScreenNav from '@/components/SmallScreenNav';
+import ModalComponent from '@/components/Modal';
+import { useIsLargeScreen } from '@/hooks/useIsLargeScreen';
+import TabsNavigator from '@/navigation/TabsNavigator';
+import HomePage from '@/screens/menus';
+import { StackNavigator } from '@/navigation/StackNavigator';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
 const Stack = createStackNavigator();
 
 const LanguageLayout = () => {
-  const { theme } = useContext(ThemeContext);
+  const { theme, setTheme } = useTheme();
   const isDarkMode = theme === 'dark';
   const isLargeScreen = useIsLargeScreen();
   const [loaded] = useFonts({
@@ -37,9 +39,8 @@ const LanguageLayout = () => {
 
   useEffect(() => {
     const handleLanguageChange = async () => {
-      const urlLanguage = (pathname.split('/')[1] as Language);
-      const validLanguages: Language[] = ['en', 'fr'];
-      if (validLanguages.includes(urlLanguage)) {
+      const urlLanguage = pathname.split('/')[1] as Language;
+      if (VALID_LANGUAGES.includes(urlLanguage)) {
         setLanguage(urlLanguage);
         await AsyncStorage.setItem('language', urlLanguage);
       } else {
@@ -47,13 +48,23 @@ const LanguageLayout = () => {
       }
     };
 
-    async function initialize() {
-      const hasVisited = await AsyncStorage.getItem('hasVisited');
-      if (!hasVisited) {
-        setNewsModalVisible(true);
-        await AsyncStorage.setItem('hasVisited', 'true');
+    const initialize = async () => {
+      try {
+        const hasVisited = await AsyncStorage.getItem('hasVisited');
+        if (!hasVisited) {
+          setNewsModalVisible(true);
+          await AsyncStorage.setItem('hasVisited', 'true');
+        }
+
+        // Load theme from storage
+        const storedTheme = await AsyncStorage.getItem('theme');
+        if (storedTheme && VALID_THEMES.includes(storedTheme as any)) {
+          setTheme(storedTheme as any);
+        }
+      } catch (error) {
+        console.error('Error initializing:', error);
       }
-    }
+    };
 
     handleLanguageChange();
     initialize();
@@ -61,48 +72,54 @@ const LanguageLayout = () => {
     if (loaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, pathname, setLanguage]);
+  }, [loaded, pathname, setLanguage, navigation, setTheme]);
 
   if (!loaded) {
     return null;
   }
 
+  // Common stack navigator options
+  const stackScreenOptions = {
+    headerShown: false,
+  };
+
   return (
     <NavigationThemeProvider value={isDarkMode ? DarkTheme : DefaultTheme}>
-      <View style={{ flex: 1 }}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         {isLargeScreen ? (
-          <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={{ flex: 1 }}>
             <View style={{ zIndex: 1 }}>
               <Navbar />
             </View>
-            <Stack.Navigator initialRouteName='Home' screenOptions={{ headerShown: false }}>
+            <Stack.Navigator
+              initialRouteName="Home"
+              screenOptions={stackScreenOptions}
+            >
               <Stack.Screen name="Home" component={HomePage} />
               <Stack.Screen name="Contact" component={ContactPage} />
               <Stack.Screen name="Promotion" component={PromotionPage} />
             </Stack.Navigator>
-          </GestureHandlerRootView>
+          </View>
         ) : (
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <SafeAreaView style={{ flex: 1 }}>
-              <View style={{ zIndex: 1 }}>
-                <SmallScreenNav />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Stack.Navigator screenOptions={{headerShown:false}}>
-                  <Stack.Screen name="Tabs" component={TabsNavigator} />
-                  <Stack.Screen name="StackNavigator" component={StackNavigator} />
-                </Stack.Navigator>
-              </View>
-            </SafeAreaView>
-          </GestureHandlerRootView>
+          <SafeAreaView style={{ flex: 1 }}>
+            <View style={{ zIndex: 1 }}>
+              <SmallScreenNav />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Stack.Navigator screenOptions={stackScreenOptions}>
+                <Stack.Screen name="Tabs" component={TabsNavigator} />
+                <Stack.Screen name="StackNavigator" component={StackNavigator} />
+              </Stack.Navigator>
+            </View>
+          </SafeAreaView>
         )}
-      </View>
-      <ModalComponent
-        visible={newsModalVisible}
-        onClose={() => setNewsModalVisible(false)}
-      />
+        <ModalComponent
+          visible={newsModalVisible}
+          onClose={() => setNewsModalVisible(false)}
+        />
+      </GestureHandlerRootView>
     </NavigationThemeProvider>
   );
-}
+};
 
 export default LanguageLayout;

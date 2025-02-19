@@ -1,7 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type Language = 'en' | 'fr'; // Add more languages as needed
+export type Language = 'en' | 'fr';
+
+// Constants for better maintainability
+export const VALID_LANGUAGES: Language[] = ['en', 'fr'];
+export const DEFAULT_LANGUAGE: Language = 'en';
+const STORAGE_KEY = 'language';
 
 interface LanguageContextProps {
   language: Language;
@@ -9,7 +14,7 @@ interface LanguageContextProps {
 }
 
 const LanguageContext = createContext<LanguageContextProps>({
-  language: 'en', // Default language
+  language: DEFAULT_LANGUAGE,
   setLanguage: () => {},
 });
 
@@ -18,14 +23,14 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
 
   useEffect(() => {
     // Load language from AsyncStorage when the component mounts
     const loadLanguage = async () => {
       try {
-        const storedLanguage = await AsyncStorage.getItem('language');
-        if (storedLanguage) {
+        const storedLanguage = await AsyncStorage.getItem(STORAGE_KEY);
+        if (storedLanguage && VALID_LANGUAGES.includes(storedLanguage as Language)) {
           setLanguage(storedLanguage as Language);
         }
       } catch (error) {
@@ -40,7 +45,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     // Save language to AsyncStorage whenever it changes
     const saveLanguage = async () => {
       try {
-        await AsyncStorage.setItem('language', language);
+        await AsyncStorage.setItem(STORAGE_KEY, language);
       } catch (error) {
         console.error('Failed to save language to storage:', error);
       }

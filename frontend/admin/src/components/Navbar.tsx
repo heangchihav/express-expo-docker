@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import LanguageSwitcher from './LanguageSwitcher';
 import ThemeSwitcherButton from './ThemeSwitcherButton';
@@ -6,11 +6,11 @@ import ThemeSwitcherButton from './ThemeSwitcherButton';
 import { Colors } from '../constants/Colors';
 import LoginModal from './LoginModal';
 import SignUpModal from './SignUpModal';
-import { ThemeContext } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { FontAwesome } from '@expo/vector-icons';
 
 const Navbar = () => {
-    const { theme } = useContext(ThemeContext);
+    const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const [loginModalVisible, setLoginModalVisible] = useState(false);
     const [signUpModalVisible, setSignUpModalVisible] = useState(false);

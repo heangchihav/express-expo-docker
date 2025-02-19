@@ -1,9 +1,9 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Modal, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 
 import { Colors } from '../constants/Colors';
 import { AntDesign } from '@expo/vector-icons';
-import { ThemeContext } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface SignUpModalProps {
     visible: boolean;
@@ -12,7 +12,7 @@ interface SignUpModalProps {
 
 const SignUpModal: React.FC<SignUpModalProps> = ({ visible, onClose }) => {
 
-    const { theme } = useContext(ThemeContext);
+    const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
 
     const [username, setUsername] = useState('');
@@ -62,7 +62,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ visible, onClose }) => {
                             style={[styles.input, { backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background, color: isDarkMode ? Colors.lightText : Colors.lightText }]}
                         />
                         <TouchableOpacity style={[styles.signupButton, { backgroundColor: isDarkMode ? Colors.dark.tabIconDefault : Colors.light.tabIconDefault }]}>
-                            <Text style={[styles.signupButtonText,{color: isDarkMode ? Colors.dark.text : Colors.light.text}]}>Sign Up</Text>
+                            <Text style={[styles.signupButtonText, { color: isDarkMode ? Colors.dark.text : Colors.light.text }]}>Sign Up</Text>
                         </TouchableOpacity>
                         <View style={styles.loginContainer}>
                             <Text style={styles.loginText}>Already have an account?</Text>
