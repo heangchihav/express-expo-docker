@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Merchant {
+  id                 String              @id @default(uuid())
+  name               String              @unique
+  users              User[] // One-to-Many: A merchant can have multiple users (staff)
+  cloudflareAccounts CloudflareAccount[] // One-to-Many: A merchant has multiple Cloudflare accounts
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  merchantId    String // FK to Merchant
+  merchant      Merchant       @relation(fields: [merchantId], references: [id])
+  name          String?
+  username      String?        @unique
+  passwordHash  String?
+  googleId      String?        @unique
+  email         String?        @unique
+  role          Role           @default(USER)
+  refreshTokens RefreshToken[]
+  addedDomains  Domain[]       @relation("AddedBy")
+  allowedAccess AllowedAccess?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model AllowedAccess {
+  id                    String   @id @default(uuid())
+  whitelistedIPs        String[] @default([])
+  blacklistedIPs        String[] @default([])
+  whitelistedCountries  String[] @default([])
+  blacklistedCountries  String[] @default([])
+  whitelistedUserAgents String[] @default([])
+  blacklistedUserAgents String[] @default([])
+  whitelistedOS         String[] @default([])
+  blacklistedOS         String[] @default([])
+  userId                Int      @unique // FK to User (One-to-One)
+  user                  User     @relation(fields: [userId], references: [id])
+}
+
+model CloudflareAccount {
+  id         String   @id @default(uuid())
+  accountId  String   @unique
+  apiKey     String
+  domains    Domain[]
+  merchantId String // FK to Merchant (Required)
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+}
+
+model Domain {
+  id                  String            @id @default(uuid())
+  name                String            @unique
+  ns1                 String
+  ns2                 String
+  status              DomainStatus      @default(PENDING)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @default(now())
+  cloudflareAccountId String // FK to CloudflareAccount
+  cloudflareAccount   CloudflareAccount @relation(fields: [cloudflareAccountId], references: [id])
+  addedById           Int // FK to User who added the domain
+  addedBy             User              @relation("AddedBy", fields: [addedById], references: [id])
+}
+
+enum DomainStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  deviceName String? // e.g., "iPhone 12", "Samsung Galaxy S21"
+  deviceType String? // e.g., "mobile", "desktop"
+  browser    String? // e.g., "Chrome", "Safari"
+  os         String? // e.g., "iOS 14", "Windows 10"
+  ip         String? // IP address
+  createdAt  DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  USER
+}
