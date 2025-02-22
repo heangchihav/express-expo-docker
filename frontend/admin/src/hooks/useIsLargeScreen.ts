@@ -1,23 +1,29 @@
-// src/hooks/useIsLargeScreen.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dimensions } from 'react-native';
+import debounce from 'lodash.debounce';
 
-export function useIsLargeScreen() {
-  const [isLargeScreen, setIsLargeScreen] = useState(Dimensions.get('window').width >= 768);
+const LARGE_SCREEN_BREAKPOINT = 768;
+
+export function useIsLargeScreen(): boolean {
+  const [isLargeScreen, setIsLargeScreen] = useState(
+    Dimensions.get('window').width >= LARGE_SCREEN_BREAKPOINT
+  );
+
+  // Memoized resize handler with debounce
+  const handleResize = useCallback(
+    debounce(() => {
+      setIsLargeScreen(Dimensions.get('window').width >= LARGE_SCREEN_BREAKPOINT);
+    }, 150),
+    []
+  );
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsLargeScreen(Dimensions.get('window').width >= 768);
-    };
-
-    // Add event listener for screen dimension changes
     const subscription = Dimensions.addEventListener('change', handleResize);
 
-    // Clean up event listener on unmount
     return () => {
-      subscription?.remove();
+      subscription.remove();
     };
-  }, []);
+  }, [handleResize]);
 
   return isLargeScreen;
 }
