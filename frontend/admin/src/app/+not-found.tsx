@@ -19,9 +19,6 @@ export default function NotFoundScreen() {
         />
         <ThemedText style={styles.title}>Oops! Page Not Found</ThemedText>
         <ThemedText style={styles.message}>The page you’re looking for does not exist.</ThemedText>
-        <Link href={{ pathname: "/[lang]", params: { lang }}} style={styles.link}>
-          <ThemedText style={styles.linkText}>Go to home screen</ThemedText>
-        </Link>
       </View>
     </ThemedView>
   );
@@ -32,9 +29,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8f9fa', 
+    backgroundColor: '#f8f9fa',
     padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 60 : 20, 
+    paddingTop: Platform.OS === 'ios' ? 60 : 20,
   },
   content: {
     alignItems: 'center',
@@ -49,14 +46,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333', 
+    color: '#333',
     marginBottom: 10,
   },
   message: {
     fontSize: 16,
-    color: '#666', 
+    color: '#666',
     marginBottom: 20,
-    maxWidth: '80%', 
+    maxWidth: '80%',
   },
   link: {
     marginTop: 15,
@@ -64,7 +61,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 16,
-    color: '#007bff', 
+    color: '#007bff',
     textDecorationLine: 'underline',
   },
 });
