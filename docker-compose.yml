@@ -424,11 +424,10 @@ services:
       - /app/node_modules
     ports:
       - "8081:8081"      # Metro bundler
-      - "19006:19006"    # Expo web
     environment:
       - NODE_ENV=development
-      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
-      - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
-      - PORT=19006
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=localhost
+      - REACT_NATIVE_PACKAGER_HOSTNAME=localhost
+      - PORT=8081
     networks:
       - app_network
