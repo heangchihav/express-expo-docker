@@ -1,4 +1,4 @@
-import { useApi } from '../hooks/useApi';
+import { useApi } from '@/hooks/useApi';
 import { ApiEndpoints, LoginCredentials, LoginResponse, SignupCredentials, UserProfile } from '../types/api.types';
 
 export const useAuthService = () => {

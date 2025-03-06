@@ -1,64 +1,66 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLocalSearchParams } from 'expo-router';
 
 export type Language = 'en' | 'fr';
-
-// Constants for better maintainability
 export const VALID_LANGUAGES: Language[] = ['en', 'fr'];
-export const DEFAULT_LANGUAGE: Language = 'en';
-const STORAGE_KEY = 'language';
+const DEFAULT_LANGUAGE: Language = 'fr';
+export const LANGUAGE_STORAGE_KEY = 'app_language';
 
-interface LanguageContextProps {
+interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
 }
 
-const LanguageContext = createContext<LanguageContextProps>({
-  language: DEFAULT_LANGUAGE,
-  setLanguage: () => {},
-});
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-interface LanguageProviderProps {
-  children: ReactNode;
-}
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE);
+  const { lang } = useLocalSearchParams<{ lang: string }>();
 
-export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
-
+  // Update language when URL param changes
   useEffect(() => {
-    // Load language from AsyncStorage when the component mounts
-    const loadLanguage = async () => {
-      try {
-        const storedLanguage = await AsyncStorage.getItem(STORAGE_KEY);
-        if (storedLanguage && VALID_LANGUAGES.includes(storedLanguage as Language)) {
-          setLanguage(storedLanguage as Language);
+    if (lang && VALID_LANGUAGES.includes(lang as Language)) {
+      setLanguageState(lang as Language);
+      AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+    }
+  }, [lang]);
+
+  // Load initial language from storage if no URL param
+  useEffect(() => {
+    if (!lang) {
+      async function loadLanguage() {
+        try {
+          const storedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+          if (storedLanguage && VALID_LANGUAGES.includes(storedLanguage as Language)) {
+            setLanguageState(storedLanguage as Language);
+          }
+        } catch (error) {
+          console.error('Error loading language:', error);
         }
-      } catch (error) {
-        console.error('Failed to load language from storage:', error);
       }
-    };
+      loadLanguage();
+    }
+  }, [lang]);
 
-    loadLanguage();
-  }, []);
-
-  useEffect(() => {
-    // Save language to AsyncStorage whenever it changes
-    const saveLanguage = async () => {
-      try {
-        await AsyncStorage.setItem(STORAGE_KEY, language);
-      } catch (error) {
-        console.error('Failed to save language to storage:', error);
-      }
-    };
-
-    saveLanguage();
-  }, [language]);
+  const setLanguage = async (newLanguage: Language) => {
+    if (VALID_LANGUAGES.includes(newLanguage)) {
+      setLanguageState(newLanguage);
+      await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, newLanguage);
+    }
+  };
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage }}>
       {children}
     </LanguageContext.Provider>
   );
-};
+}
 
-export const useLanguage = () => useContext(LanguageContext);
+export function useLanguage() {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+}

@@ -1,126 +1,146 @@
-import React, { useCallback, useEffect } from 'react';
-import { View, Pressable, StyleSheet, Animated } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Theme, useTheme, VALID_THEMES } from '../contexts/ThemeContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ThemeType, useTheme } from '@/contexts/ThemeContext';
 
 export default function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === 'dark';
+  const { theme, isDark, setTheme } = useTheme();
+  const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  // Animation value for smooth icon transition
-  const animatedValue = React.useRef(new Animated.Value(isDark ? 1 : 0)).current;
-
-  // Animate icon when theme changes
-  useEffect(() => {
-    Animated.spring(animatedValue, {
-      toValue: isDark ? 1 : 0,
-      useNativeDriver: true,
-      tension: 20,
-      friction: 7,
-    }).start();
-  }, [isDark, animatedValue]);
-
-  const handleThemeToggle = useCallback(async () => {
-    const newTheme: Theme = isDark ? 'light' : 'dark';
-    if (VALID_THEMES.includes(newTheme)) {
-      setTheme(newTheme);
+  const getThemeIcon = (themeType: ThemeType) => {
+    switch (themeType) {
+      case 'light':
+        return <Ionicons name="sunny" size={16} color="#FFA500" />;
+      case 'dark':
+        return <Ionicons name="moon" size={16} color="#FFD700" />;
+      case 'system':
+        return <Ionicons name="phone-portrait" size={16} color={isDark ? '#808080' : '#666666'} />;
     }
-  }, [isDark, setTheme]);
+  };
 
-  // Interpolate animation values for rotation and scale
-  const rotate = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  const getThemeLabel = (themeType: ThemeType) => {
+    switch (themeType) {
+      case 'light':
+        return 'Light';
+      case 'dark':
+        return 'Dark';
+      case 'system':
+        return 'System';
+    }
+  };
 
-  const scale = animatedValue.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [1, 0.85, 1],
-  });
-
-  useEffect(() => {
-    const loadThemeFromStorage = async () => {
-      try {
-        const savedTheme = await AsyncStorage.getItem('theme');
-        if (savedTheme) {
-          setTheme(savedTheme as Theme);
-        }
-      } catch (error) {
-        console.error('Failed to load theme from storage', error);
-      }
-    };
-
-    loadThemeFromStorage();
+  const handleThemeChange = useCallback((newTheme: ThemeType) => {
+    setTheme(newTheme);
+    setDropdownVisible(false);
   }, [setTheme]);
 
   return (
     <View style={styles.container}>
-      <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          pressed && styles.buttonPressed,
-          { backgroundColor: isDark ? '#1A1A1A' : '#F5F5F5' }
-        ]}
-        onPress={handleThemeToggle}
-        accessibilityRole="button"
-        accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-        accessibilityState={{ selected: isDark }}
+      <TouchableOpacity
+        style={[styles.button, isDark && styles.buttonDark]}
+        onPress={() => setDropdownVisible(!dropdownVisible)}
       >
-        <Animated.View style={[
-          styles.iconContainer,
-          {
-            transform: [
-              { rotate },
-              { scale }
-            ]
-          }
-        ]}>
-          {isDark ? (
-            <Ionicons
-              name="moon"
-              size={24}
-              color="#FFD700"
-              accessibilityLabel="Dark theme icon"
-            />
-          ) : (
-            <Ionicons
-              name="sunny"
-              size={24}
-              color="#FFA500"
-              accessibilityLabel="Light theme icon"
-            />
-          )}
-        </Animated.View>
-      </Pressable>
+        {getThemeIcon(theme)}
+        <Text style={[styles.buttonText, isDark && styles.textDark]}>
+          {getThemeLabel(theme)}
+        </Text>
+        <Ionicons
+          name={dropdownVisible ? 'chevron-up' : 'chevron-down'}
+          size={16}
+          color={isDark ? '#fff' : '#000'}
+        />
+      </TouchableOpacity>
+
+      {dropdownVisible && (
+        <View style={[styles.dropdown, isDark && styles.dropdownDark]}>
+          {(['light', 'dark', 'system'] as ThemeType[]).map((themeOption) => (
+            <TouchableOpacity
+              key={themeOption}
+              style={[
+                styles.dropdownItem,
+                theme === themeOption && (isDark ? styles.activeItemDark : styles.activeItem),
+              ]}
+              onPress={() => handleThemeChange(themeOption)}
+            >
+              {getThemeIcon(themeOption)}
+              <Text
+                style={[
+                  styles.dropdownText,
+                  isDark && styles.textDark,
+                  theme === themeOption && styles.activeText,
+                ]}
+              >
+                {getThemeLabel(themeOption)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: 'relative',
+    zIndex: 1000,
   },
   button: {
-    padding: 8,
-    borderRadius: 50,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    gap: 8,
   },
-  buttonPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.95 }],
+  buttonDark: {
+    backgroundColor: '#333',
+    borderColor: '#555',
   },
-  iconContainer: {
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
+  buttonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000',
+  },
+  textDark: {
+    color: '#fff',
+  },
+  dropdown: {
+    position: 'absolute',
+    top: '100%',
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginTop: 4,
+    minWidth: '100%',
+  },
+  dropdownDark: {
+    backgroundColor: '#333',
+    borderColor: '#555',
+  },
+  dropdownItem: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  activeItem: {
+    backgroundColor: '#f0f0f0',
+  },
+  activeItemDark: {
+    backgroundColor: '#444',
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: '#000',
+  },
+  activeText: {
+    fontWeight: '500',
   },
 });

@@ -1,186 +1,112 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Modal, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Language, useLanguage, VALID_LANGUAGES } from '@/contexts/LanguageContext';
-import { useTheme } from '@/contexts/ThemeContext';
-
-interface LanguageOption {
-  code: Language;
-  name: string;
-  avatar: string;
-  label: string;
-}
-
-const languages: LanguageOption[] = [
-  { 
-    code: 'en', 
-    name: 'English',
-    label: 'Switch to English',
-    avatar: 'https://res.cloudinary.com/da8ox9rlr/image/upload/flags/1x1/sh_myho2n.jpg' 
-  },
-  { 
-    code: 'fr', 
-    name: 'French',
-    label: 'Passer au français',
-    avatar: 'https://res.cloudinary.com/da8ox9rlr/image/upload/flags/1x1/yt_fnqbkh.jpg' 
-  },
-];
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter, usePathname } from 'expo-router';
+import { Language, VALID_LANGUAGES, useLanguage } from '@/contexts/LanguageContext';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function LanguageSwitcher() {
-  const { language, setLanguage } = useLanguage();
-  const { theme } = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
+  const { language, setLanguage } = useLanguage();
   const [dropdownVisible, setDropdownVisible] = useState(false);
-
-  const isDarkMode = theme === 'dark';
 
   const handleLanguageChange = useCallback(async (newLanguage: Language) => {
     if (VALID_LANGUAGES.includes(newLanguage)) {
       setLanguage(newLanguage);
-      router.push(`/${newLanguage}`);
+
+      // Keep everything after the language segment
+      const pathSegments = pathname.split('/');
+      const remainingPath = pathSegments.slice(2).join('/');
+
+      // Navigate to same path with new language
+      router.push(`/${newLanguage}/${remainingPath}` as any);
       setDropdownVisible(false);
     }
-  }, [setLanguage, router]);
-
-  const currentLanguage = languages.find(lang => lang.code === language);
-
-  const closeModal = useCallback(() => {
-    setDropdownVisible(false);
-  }, []);
-
-  const toggleDropdown = useCallback(() => {
-    setDropdownVisible(prev => !prev);
-  }, []);
+  }, [setLanguage, router, pathname]);
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={styles.dropdownButton}
-        onPress={toggleDropdown}
-        accessibilityRole="button"
-        accessibilityLabel={`Current language: ${currentLanguage?.name}. Click to change language`}
+        style={styles.button}
+        onPress={() => setDropdownVisible(!dropdownVisible)}
       >
-        <Image
-          source={{ uri: currentLanguage?.avatar }}
-          style={styles.avatar}
-          accessibilityRole="image"
-          accessibilityLabel={`${currentLanguage?.name} flag`}
+        <Text style={styles.buttonText}>{language.toUpperCase()}</Text>
+        <Ionicons
+          name={dropdownVisible ? 'chevron-up' : 'chevron-down'}
+          size={16}
+          color="#000"
         />
       </TouchableOpacity>
 
-      <Modal
-        transparent
-        visible={dropdownVisible}
-        onRequestClose={closeModal}
-        animationType="fade"
-      >
-        <Pressable style={styles.modalContainer} onPress={closeModal}>
-          <View 
-            style={[
-              styles.dropdownMenu,
-              isDarkMode && styles.dropdownMenuDark
-            ]}
-          >
-            <FlatList
-              data={languages}
-              keyExtractor={(item) => item.code}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.languageItem,
-                    language === item.code && styles.selectedLanguageItem,
-                    isDarkMode && styles.languageItemDark
-                  ]}
-                  onPress={() => handleLanguageChange(item.code)}
-                  accessibilityRole="button"
-                  accessibilityLabel={item.label}
-                  accessibilityState={{ selected: language === item.code }}
-                >
-                  <Image 
-                    source={{ uri: item.avatar }} 
-                    style={styles.languageAvatar}
-                    accessibilityRole="image"
-                    accessibilityLabel={`${item.name} flag`}
-                  />
-                  <Text style={[
-                    styles.languageName,
-                    isDarkMode && styles.languageNameDark,
-                    language === item.code && styles.selectedLanguageName
-                  ]}>
-                    {item.name}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </Pressable>
-      </Modal>
+      {dropdownVisible && (
+        <View style={styles.dropdown}>
+          {VALID_LANGUAGES.map((lang) => (
+            <TouchableOpacity
+              key={lang}
+              style={[
+                styles.dropdownItem,
+                language === lang && styles.activeItem,
+              ]}
+              onPress={() => handleLanguageChange(lang)}
+            >
+              <Text
+                style={[
+                  styles.dropdownText,
+                  language === lang && styles.activeText,
+                ]}
+              >
+                {lang.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
+    position: 'relative',
+    zIndex: 1000,
   },
-  dropdownButton: {
-    borderRadius: 50,
-    padding: 2,
-  },
-  avatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 50,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  dropdownMenu: {
-    backgroundColor: '#FFFFFF',
-    padding: 10,
-    borderRadius: 10,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    width: '70%',
-    maxWidth: 400,
-  },
-  dropdownMenuDark: {
-    backgroundColor: '#1A1A1A',
-  },
-  languageItem: {
+  button: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    borderRadius: 8,
-    marginVertical: 2,
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
-  languageItemDark: {
-    backgroundColor: '#2A2A2A',
+  buttonText: {
+    marginRight: 8,
+    fontSize: 14,
+    fontWeight: '500',
   },
-  selectedLanguageItem: {
-    backgroundColor: '#E3F2FD',
+  dropdown: {
+    position: 'absolute',
+    top: '100%',
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginTop: 4,
+    minWidth: '100%',
   },
-  languageAvatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 50,
-    marginRight: 10,
+  dropdownItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  languageName: {
-    fontSize: 16,
-    color: '#000000',
+  activeItem: {
+    backgroundColor: '#f0f0f0',
   },
-  languageNameDark: {
-    color: '#FFFFFF',
+  dropdownText: {
+    fontSize: 14,
   },
-  selectedLanguageName: {
-    fontWeight: 'bold',
-    color: '#1976D2',
+  activeText: {
+    fontWeight: '500',
   },
 });
