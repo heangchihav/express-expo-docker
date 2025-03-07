@@ -15,6 +15,8 @@ export const configureBasicMiddlewares = (app: Express): void => {
     // Basic middleware setup
     if (cookieParser) app.use(cookieParser());
     if (corsMiddleware) app.use(corsMiddleware);
+    // Session middleware
+    if (sessionMiddleware) app.use(sessionMiddleware);
 };
 
 export const configureLoggingMiddlewares = (app: Express): void => {
@@ -34,9 +36,6 @@ export const configureSecurityMiddlewares = (app: Express): void => {
 export const configureAuthMiddlewares = (app: Express): void => {
     // Initialize Passport
     app.use(passport.initialize());
-
-    // Session configuration (if needed for other strategies)
-    if (sessionMiddleware) app.use(sessionMiddleware);
     app.use(passport.session());
 
     // Auth middleware

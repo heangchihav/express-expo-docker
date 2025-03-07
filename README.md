@@ -134,7 +134,7 @@ For mobile devices, include both `accessToken` and `refreshToken` with each requ
 
 **How to run prisma** 
 docker-compose exec expressjs npx prisma db push
-sudo docker-compose exec expressjs npx prisma studio --hostname 0.0.0.0
+docker-compose exec expressjs npx prisma studio --hostname 0.0.0.0
 
 ---
 

@@ -58,6 +58,8 @@ class App {
         this._app.use(express.json());
         this._app.use(express.urlencoded({ extended: true }));
 
+        this._app.set("trust proxy", 1);  // Trust first proxy (safest option)
+
         // Performance middlewares
         configurePerformanceMiddlewares(this._app);
 

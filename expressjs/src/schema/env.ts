@@ -44,18 +44,6 @@ export const envSchema = z.object({
     }),
     CALLBACK_URL: z.string().url().optional(),
 
-    // FastAPI Integration
-    FASTAPI_URL: z.string().url({
-        message: "FASTAPI_URL must be a valid URL"
-    }),
-    FASTAPI_KEY: z.string().min(1, {
-        message: "FASTAPI_KEY is required"
-    }),
-    RISK_THRESHOLD: z.string().regex(/^\d+(\.\d+)?$/, {
-        message: "RISK_THRESHOLD must be a valid number"
-    }).transform(val => parseFloat(val)).default('0.5'),
-    WHITELISTED_IPS: z.string().default(''),
-
     // CORS Settings
     CORS_ORIGINS: z.string().default('*'),
     ALLOWED_METHODS: z.string().default('GET,HEAD,PUT,PATCH,POST,DELETE'),
@@ -68,6 +56,10 @@ export const envSchema = z.object({
         message: "RATE_LIMIT_MAX must be a valid number"
     }).transform(val => parseInt(val, 10)).default('100'),
 
+    // CSRF Protection
+    CSRF_SECRET: z.string().min(32, {
+        message: "CSRF_SECRET must be at least 32 characters long"
+    }).optional()
 });
 
 // Type inference for environment variables

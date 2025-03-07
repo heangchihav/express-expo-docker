@@ -40,12 +40,6 @@ export const secret = {
     googleClientSecret: env.GOOGLE_CLIENT_SECRET,
     callbackUrl: env.CALLBACK_URL || `http://${env.HOST}:${env.SERVER_PORT}/api/auth/google/callback`,
 
-    // FastAPI Integration
-    fastApiUrl: env.FASTAPI_URL,
-    fastApiKey: env.FASTAPI_KEY,
-    riskThreshold: env.RISK_THRESHOLD,
-    whitelistedIPs: env.WHITELISTED_IPS.split(',').filter(Boolean),
-
     // CORS Settings
     corsOrigins: env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean),
     allowedMethods: env.ALLOWED_METHODS.split(',').map(method => method.trim()).filter(Boolean),
@@ -54,4 +48,6 @@ export const secret = {
     rateLimitWindowMs: env.RATE_LIMIT_WINDOW_MS,
     rateLimitMax: env.RATE_LIMIT_MAX,
 
+    // CSRF Protection
+    csrfSecret: env.CSRF_SECRET
 } as const;
