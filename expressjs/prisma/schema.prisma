@@ -51,6 +51,7 @@ model CloudflareAccount {
   id         String   @id @default(uuid())
   accountId  String   @unique
   apiKey     String
+  tunnelId   String? // Optional for backward compatibility
   domains    Domain[]
   merchantId String // FK to Merchant (Required)
   merchant   Merchant @relation(fields: [merchantId], references: [id])

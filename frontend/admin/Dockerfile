@@ -1,29 +1,19 @@
-# Use Node.js LTS version as the base image
-FROM node:20-alpine
+# Stage 1: Build the static website
+FROM node:18-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies required for development
-RUN apk add --no-cache git
+# Install dependencies using npm
+COPY package.json package-lock.json ./
 
-# Copy package files
-COPY package*.json ./
+# Install without dev dependencies
+RUN npm ci --omit=dev
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code
+# Copy source files
 COPY . .
 
-# Set environment variables for Expo development
-ENV NODE_ENV=development
-ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=localhost
-ENV REACT_NATIVE_PACKAGER_HOSTNAME=localhost
-ENV PORT=8081
+# Build Expo static web
+RUN npx expo export --platform web
 
-# Expose Metro bundler port
-EXPOSE 8081
-
-# Start the Expo development server
-CMD ["npm", "start", "--", "--port", "8081", "--host", "lan"]
+# Keep container running to serve files
+CMD ["tail", "-f", "/dev/null"]

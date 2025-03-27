@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { asyncErrorHandler } from '@/middlewares/error/ErrorMiddleware';
-import { addDomain } from '@/api/v1/controllers/domain/addDomain';
+import { addDomain } from '@/api/v1/controllers/domain/domainRoutes';
 
 const addDomainRoutes: Router = Router();
 
